@@ -218,6 +218,12 @@ public class Calculator extends JFrame {
 	}
 	public void interruptKeyLogic(JTextField jTextField,String symbol) throws ScriptException {
 		String str=jTextField.getText();
+		if(str.indexOf("=") != -1) {
+			String[]  lastOperation = jTextField.getText().split("=");
+			trueFormula=lastOperation[1];
+			System.out.println(trueFormula);
+			str=lastOperation[1];
+		}
 		Double doubleCalculation;   //用于计算转化的变量
 		int length = str.length();
 		int currentLength=length;
@@ -357,7 +363,8 @@ public class Calculator extends JFrame {
 				      if(strSymbol.indexOf("+") != -1||strSymbol.indexOf("-") != -1||strSymbol.indexOf("*") != -1||strSymbol.indexOf("/") != -1||strSymbol.indexOf("(") != -1||strSymbol.indexOf(")") != -1)  break;
 				      else     currentLength--;
 			          }
-			    strFormula = str.substring(currentLength, length);//此时已经得到了想运算数字字符串即StrFormula
+				strFormula = str.substring(currentLength, length);//此时已经得到了想运算数字字符串即StrFormula
+			    System.out.println(strFormula+"ahaha");
 			    Double double1 = Double.parseDouble(strFormula);  // 将字符串转换为double	    
 			    switch(symbol) {
 			    case "%":
@@ -379,12 +386,15 @@ public class Calculator extends JFrame {
 			    	}
 			    	else{
 			    		 int int1=Integer.parseInt(strFormula);
+			    		 System.out.println(strFormula+int1);
 			    		 int int2=int1;
 				    	 while(int1>1) {
 				    		 int2=int2*(int1-1);
 				    		 int1--;
 				    	 }
+				    	 System.out.println(int2);
 				    	 strInterrupt.push(Integer.toString(int2));
+				    	 System.out.println(strInterrupt.peek());
 			    	}
 			    	break;
 			    default:
@@ -398,6 +408,8 @@ public class Calculator extends JFrame {
 				      else     currentLength--;
 			          }
 			    trueFormula=trueFormula.substring(0, currentLength)+(String)strInterrupt.pop();
+			    System.out.println(trueFormula+"end");
+			    System.out.println(str+symbol);
 			    jTextField.setText(str+symbol);
 			}else {
 				return;
