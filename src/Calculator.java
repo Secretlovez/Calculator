@@ -8,6 +8,7 @@ import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Stack;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -24,8 +25,10 @@ public class Calculator extends JFrame {
 	}
 	static ScriptEngine jse = new ScriptEngineManager().getEngineByName("JavaScript"); 
     static String trueFormula="";         //计算的真实字符串，最后只计算这串字符串
-    static String strInterrupt="";        //中断字符串
-    static int    intInterrupt=0;          //中断变量
+    static Stack  strInterrupt=new Stack();
+    //static String strInterrupt="";        //中断字符串
+    static Stack    intInterrupt=new Stack(); 
+   // static int    intInterrupt=0;          //中断变量
    
     /*伽马函数的实现，主要用于求广义的阶乘*/
     public double gamma(double x) { 
@@ -77,26 +80,26 @@ public class Calculator extends JFrame {
 			//String[]  lastOperation = jTextField.getText().split("=");
 			//jTextField.setText(lastOperation[1]+symbol);
 			trueFormula=symbol;
-			strInterrupt="";
+			//strInterrupt="";
 			jTextField.setText(symbol);
 		}
 		else if(jTextField.getText().indexOf("错误") != -1||jTextField.getText().indexOf("Infinity") != -1) {
 			trueFormula=symbol;
-			strInterrupt="";
+			//strInterrupt="";
 			jTextField.setText(symbol);
 		}
 		else if (jTextField.getText().equals("0")) {                 /*与0对比，确保不会出现00的现象*/
 			//jTextField.setText("");
 			trueFormula=symbol;
-			strInterrupt="";
+			//strInterrupt="";
 			jTextField.setText(symbol);
 			//jTextField.requestFocus();  /*把输入焦点放在调用这个方法的控件上*/ 
 		}
 		else {
-			if(intInterrupt==0) {
+			if(strInterrupt.isEmpty()) {
 				trueFormula=trueFormula + symbol;			
 			}else {
-				strInterrupt=strInterrupt+symbol;
+				strInterrupt.push((String)strInterrupt.pop()+symbol);
 			}
 			String string = jTextField.getText();
 			jTextField.setText(string + symbol);
@@ -120,12 +123,12 @@ public class Calculator extends JFrame {
 			jTextField.requestFocus();  /*把输入焦点放在调用这个方法的控件上*/ 
 		}
 		else {
-			if(intInterrupt==0) {
+			if(strInterrupt.isEmpty()) {
 				//trueFormula=trueFormula + mSymbols(trueFormula,symbol);
 				trueFormula= mSymbols(trueFormula,symbol);
 			}else {
 				//strInterrupt=strInterrupt+ mSymbols(strInterrupt,symbol);
-				strInterrupt=mSymbols(strInterrupt,symbol);
+				strInterrupt.push(mSymbols((String)strInterrupt.pop(),symbol));
 			}
 			String string = jTextField.getText();
 			jTextField.setText(mSymbols(string,symbol));
@@ -234,27 +237,28 @@ public class Calculator extends JFrame {
 				}
 				switch(symbol) {
 				case "(" :
-					intInterrupt=1;
+					intInterrupt.push(0);
+					break;
 				case "sin":
-					intInterrupt=2;
+					intInterrupt.push(1);
 					break;
 				case "cos":
-					intInterrupt=3;
+					intInterrupt.push(2);
 					break;
 				case "tan":
-					intInterrupt=4;
+					intInterrupt.push(3);
 					break;
 				case "ln":
-					intInterrupt=5;
+					intInterrupt.push(4);
 					break;
 				case "e^":
-					intInterrupt=6;
+					intInterrupt.push(5);
 					break;
 				case "10^":
-					intInterrupt=7;
+					intInterrupt.push(6);
 					break;
 				case "√":
-					intInterrupt=8;
+					intInterrupt.push(7);
 					break;
 			    default:
 			    	break;
@@ -263,88 +267,77 @@ public class Calculator extends JFrame {
 				jTextField.setText(str);
 			}
 			else if(symbol.equals(")")) {
-				if(strInterrupt=="") return;
-				if(/*str.indexOf("(") != -1*/intInterrupt!=0) {
+				if(strInterrupt.isEmpty()) {
+					return;
+				}
+				if(/*str.indexOf("(") != -1*/intInterrupt.isEmpty()) {
 				  jTextField.setText(str+")");
-				  switch(intInterrupt) {
+				  int switchInterrupt=0;
+				  String caseInterrupt="";
+				  switchInterrupt=(int)intInterrupt.pop();
+				  switch(switchInterrupt) {				  
 				  case 1:
-					  intInterrupt=0;
-					  strInterrupt=jse.eval(strInterrupt).toString();
-					  doubleCalculation=Double.parseDouble(strInterrupt);
+				      caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
+					  doubleCalculation=Double.parseDouble(caseInterrupt);
 					  doubleCalculation=Math.asin(doubleCalculation);
-					  strInterrupt=String.valueOf(doubleCalculation);
-					  trueFormula=trueFormula+strInterrupt;
-					  strInterrupt="";
+				      caseInterrupt=String.valueOf(doubleCalculation);
+					  trueFormula=trueFormula+caseInterrupt;
 				      break;
 				  case 2:
-					  intInterrupt=0;
-					  strInterrupt=jse.eval(strInterrupt).toString();
-					  doubleCalculation=Double.parseDouble(strInterrupt);
+					  caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
+					  doubleCalculation=Double.parseDouble(caseInterrupt);
 					  doubleCalculation=Math.asin(doubleCalculation);
-					  strInterrupt=String.valueOf(doubleCalculation);
-					  trueFormula=trueFormula+strInterrupt;
-					  strInterrupt="";
+					  caseInterrupt=String.valueOf(doubleCalculation);
+					  trueFormula=trueFormula+caseInterrupt;
 				      break;
 				  case 3:
-					  intInterrupt=0;
-					  strInterrupt=jse.eval(strInterrupt).toString();
-					  doubleCalculation=Double.parseDouble(strInterrupt);
+					  caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
+					  doubleCalculation=Double.parseDouble(caseInterrupt);
 					  doubleCalculation=Math.acos(doubleCalculation);
-					  strInterrupt=String.valueOf(doubleCalculation);
-					  trueFormula=trueFormula+strInterrupt;
-					  strInterrupt="";
+					  caseInterrupt=String.valueOf(doubleCalculation);
+					  trueFormula=trueFormula+caseInterrupt;
 				      break;
 				  case 4:
-					  intInterrupt=0;
-					  strInterrupt=jse.eval(strInterrupt).toString();
-					  doubleCalculation=Double.parseDouble(strInterrupt);
+					  caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
+					  doubleCalculation=Double.parseDouble(caseInterrupt);
 					  doubleCalculation=Math.atan(doubleCalculation);
-					  strInterrupt=String.valueOf(doubleCalculation);
-					  trueFormula=trueFormula+strInterrupt;
-					  strInterrupt="";
+					  caseInterrupt=String.valueOf(doubleCalculation);
+					  trueFormula=trueFormula+caseInterrupt;
 				      break;
 				  case 5:
-					  intInterrupt=0;
-					  strInterrupt=jse.eval(strInterrupt).toString();
-					  doubleCalculation=Double.parseDouble(strInterrupt);
+					  caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
+					  doubleCalculation=Double.parseDouble(caseInterrupt);
 					  if(doubleCalculation<0) {
 						  return;
 					  }else {
 					  doubleCalculation=Math.log(doubleCalculation);
-					  strInterrupt=String.valueOf(doubleCalculation);
-					  trueFormula=trueFormula+strInterrupt;
-					  strInterrupt="";
+					  caseInterrupt=String.valueOf(doubleCalculation);
+					  trueFormula=trueFormula+caseInterrupt;
 					  }
 				      break;
 				  case 6:
-					  intInterrupt=0;
-					  strInterrupt=jse.eval(strInterrupt).toString();
-					  doubleCalculation=Double.parseDouble(strInterrupt);
+					  caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
+					  doubleCalculation=Double.parseDouble(caseInterrupt);
 					  doubleCalculation=Math.exp(doubleCalculation);
-					  strInterrupt=String.valueOf(doubleCalculation);
-					  trueFormula=trueFormula+strInterrupt;
-					  strInterrupt="";
+					  caseInterrupt=String.valueOf(doubleCalculation);
+					  trueFormula=trueFormula+caseInterrupt;
 				      break;  
 				  case 7:
-					  intInterrupt=0;
-					  strInterrupt=jse.eval(strInterrupt).toString();
-					  doubleCalculation=Double.parseDouble(strInterrupt);
+					  caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
+					  doubleCalculation=Double.parseDouble(caseInterrupt);
 					  doubleCalculation=Math.pow(10,doubleCalculation);
-					  strInterrupt=String.valueOf(doubleCalculation);
-					  trueFormula=trueFormula+strInterrupt;
-					  strInterrupt="";
-				      break; 
+					  caseInterrupt=String.valueOf(doubleCalculation);
+					  trueFormula=trueFormula+caseInterrupt;
+				      break;  
 				  case 8:
-					  intInterrupt=0;
-					  strInterrupt=jse.eval(strInterrupt).toString();
-					  doubleCalculation=Double.parseDouble(strInterrupt);
+					  caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
+					  doubleCalculation=Double.parseDouble(caseInterrupt);
 					  if(doubleCalculation<0) {
 						  return;
 					  }else {
 					  doubleCalculation=Math.sqrt(doubleCalculation);
-					  strInterrupt=String.valueOf(doubleCalculation);
-					  trueFormula=trueFormula+strInterrupt;
-					  strInterrupt="";
+					  caseInterrupt=String.valueOf(doubleCalculation);
+					  trueFormula=trueFormula+caseInterrupt;
 					  }
 				      break; 
 				  default:
@@ -368,21 +361,21 @@ public class Calculator extends JFrame {
 			    Double double1 = Double.parseDouble(strFormula);  // 将字符串转换为double	    
 			    switch(symbol) {
 			    case "%":
-			    	 strInterrupt=String.valueOf(double1*0.01);
+			    	 strInterrupt.push(String.valueOf(double1*0.01));
 			    	// System.out.println(strInterrupt);
 			    	 break;
 			    case "10^-1":
-			    	strInterrupt=String.valueOf(1.0/double1);
+			    	strInterrupt.push(String.valueOf(1.0/double1));
 			    	break;
 			    case "^2":
-			    	strInterrupt=String.valueOf(double1*double1);
+			    	strInterrupt.push(String.valueOf(double1*double1));
 			    	break;
 			    case "^3":
-			    	strInterrupt=String.valueOf(double1*double1*double1);
+			    	strInterrupt.push(String.valueOf(double1*double1*double1));
 			    	break;
 			    case "!":
 			    	if(strFormula.indexOf(".")!=-1) {
-			    		strInterrupt=String.valueOf(gamma(double1+1));
+			    		strInterrupt.push(String.valueOf(gamma(double1+1)));
 			    	}
 			    	else{
 			    		 int int1=Integer.parseInt(strFormula);
@@ -391,7 +384,7 @@ public class Calculator extends JFrame {
 				    		 int2=int2*(int1-1);
 				    		 int1--;
 				    	 }
-				    	 strInterrupt = Integer.toString(int2);
+				    	 strInterrupt.push(Integer.toString(int2));
 			    	}
 			    	break;
 			    default:
@@ -404,8 +397,7 @@ public class Calculator extends JFrame {
 				      if(strSymbol.indexOf("+") != -1||strSymbol.indexOf("-") != -1||strSymbol.indexOf("*") != -1||strSymbol.indexOf("/") != -1)  break;
 				      else     currentLength--;
 			          }
-			    trueFormula=trueFormula.substring(0, currentLength)+strInterrupt;
-			    strInterrupt="";
+			    trueFormula=trueFormula.substring(0, currentLength)+(String)strInterrupt.pop();
 			    jTextField.setText(str+symbol);
 			}else {
 				return;
@@ -419,27 +411,28 @@ public class Calculator extends JFrame {
 				}
 				switch(symbol) {
 				case "(" :
-					intInterrupt=1;
+					intInterrupt.push(0);
+					break;
 				case "sin":
-					intInterrupt=2;
+					intInterrupt.push(1);
 					break;
 				case "cos":
-					intInterrupt=3;
+					intInterrupt.push(2);
 					break;
 				case "tan":
-					intInterrupt=4;
+					intInterrupt.push(3);
 					break;
 				case "ln":
-					intInterrupt=5;
+					intInterrupt.push(4);
 					break;
 				case "e^":
-					intInterrupt=6;
+					intInterrupt.push(5);
 					break;
 				case "10^":
-					intInterrupt=7;
+					intInterrupt.push(6);
 					break;
 				case "√":
-					intInterrupt=8;
+					intInterrupt.push(7);
 					break;
 			    default:
 			    	break;
@@ -692,6 +685,9 @@ public class Calculator extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				displayScreen.setText("0");
+				strInterrupt.clear();
+            	intInterrupt.clear();
+            	trueFormula="0";
 			}
 		});
 		
@@ -756,7 +752,7 @@ public class Calculator extends JFrame {
 	                    if(displayScreen.getText().indexOf("=") != -1) {
 	                    	return;
 	                    }else {
-	                    	while(intInterrupt!=0) {
+	                    	while(!intInterrupt.isEmpty()) {
 	                    		interruptKeyLogic(displayScreen,")");
 	                    		formula=formula+")";
 	                    	}
@@ -771,11 +767,15 @@ public class Calculator extends JFrame {
 	                    	displayScreen.setText(formula+"="+results);
 	                    	}
 	                    	//displayScreen.setText(formula);
+	                    	strInterrupt.clear();
+	                    	intInterrupt.clear();
 	                    	trueFormula="";
 	                    }       	                  
 	               //如果出错
 	               } catch (Exception t) {  
 	            	   displayScreen.setText("错误");
+	            	   strInterrupt.clear();
+                   	intInterrupt.clear();
 	               }          
                   
 			}
