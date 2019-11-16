@@ -3,6 +3,7 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -457,7 +458,93 @@ public class Calculator extends JFrame {
 			return;
 		}
 	}
-	 
+	
+	public void deleteKeyLogic(JTextField jTextField) {
+		String string = jTextField.getText();
+		if (string.indexOf("=") != -1) {          
+			jTextField.setText("0");
+			trueFormula="0";
+			jTextField.requestFocus();             /*把输入焦点放在调用这个方法的控件上*/ 
+			return;
+			}
+		int length = string.length();
+		if (length > 0) {
+			if(string.substring(length-1,length).equals(")")) {
+				int currentLength=length;   
+				while(currentLength!=0) {
+				    	  String strSymbol=string.substring(currentLength - 1, currentLength);
+					      if(strSymbol.indexOf("+") != -1||strSymbol.indexOf("-") != -1||strSymbol.indexOf("*") != -1||strSymbol.indexOf("/") != -1)  break;
+					      else     currentLength--;
+				          }
+				jTextField.setText(string.substring(0,currentLength));
+				if(strInterrupt.isEmpty()) {
+					length = trueFormula.length();
+					currentLength=length;    
+				    while(currentLength!=0) {
+				    	  String strSymbol=trueFormula.substring(currentLength - 1, currentLength);
+					      if(strSymbol.indexOf("+") != -1||strSymbol.indexOf("-") != -1||strSymbol.indexOf("*") != -1||strSymbol.indexOf("/") != -1)  break;
+					      else     currentLength--;
+				          }
+				    trueFormula=trueFormula.substring(0, currentLength);
+				}else {
+					String deleteString=(String)strInterrupt.pop();
+					length =deleteString.length();
+					currentLength=length;    
+				    while(currentLength!=0) {
+				    	  String strSymbol=deleteString.substring(currentLength - 1, currentLength);
+					      if(strSymbol.indexOf("+") != -1||strSymbol.indexOf("-") != -1||strSymbol.indexOf("*") != -1||strSymbol.indexOf("/") != -1)  break;
+					      else     currentLength--;
+				          }
+				    deleteString=deleteString.substring(0, currentLength);
+				    strInterrupt.push((String)deleteString);
+				}				
+			    return;			    
+			}
+			string = string.substring(0, length - 1);
+			jTextField.setText(string);
+		    System.out.println(string+"delete");}
+		else {
+			jTextField.setText(string);
+			return;
+		}
+		if(intInterrupt.isEmpty()) {
+			length=trueFormula.length();
+			if (length > 0) {
+				trueFormula = trueFormula.substring(0, length - 1);
+			    System.out.println(trueFormula +"        delete");}
+			else
+				return;
+		}else {
+			if(strInterrupt.isEmpty()) {
+				intInterrupt.pop();
+				length=string.length();
+				int currentLength=length;   
+				while(currentLength!=0) {
+				    	  String strSymbol=string.substring(currentLength - 1, currentLength);
+					      if(strSymbol.indexOf("+") != -1||strSymbol.indexOf("-") != -1||strSymbol.indexOf("*") != -1||strSymbol.indexOf("/") != -1)  break;
+					      else     currentLength--;
+				          }
+				length = trueFormula.length();
+				currentLength=length;    
+			    while(currentLength!=0) {
+			    	  String strSymbol=trueFormula.substring(currentLength - 1, currentLength);
+				      if(strSymbol.indexOf("+") != -1||strSymbol.indexOf("-") != -1||strSymbol.indexOf("*") != -1||strSymbol.indexOf("/") != -1)  break;
+				      else     currentLength--;
+			          }
+			    trueFormula=trueFormula.substring(0, currentLength);
+				jTextField.setText(string.substring(0,currentLength));
+			}else {
+				String  stringInter=(String)strInterrupt.pop();
+				length=(stringInter).length();
+				if(length==1){ 
+					return;
+				}else {
+					strInterrupt.push((String)stringInter.substring(0,length-1));
+				}
+			}
+		}
+
+	}
 	/* 构造方法*/
 	public Calculator() {
 		Container container = getContentPane();                           /* 定义一个顶级容器*/
@@ -546,7 +633,10 @@ public class Calculator extends JFrame {
 		jPanel.add(multiplication);
 		jPanel.add(jButton0);
 		jPanel.add(point);
-		jPanel.add(equal);
+		GridBagConstraints gbs = new GridBagConstraints();
+		gbs.fill=GridBagConstraints.BOTH;
+		gbs.gridwidth=1;    gbs.gridheight=2;
+		jPanel.add(equal,gbs);
 		
 		jPanel.add(percent);
 		/* 将组件放入容器中*/
@@ -677,19 +767,7 @@ public class Calculator extends JFrame {
 		delete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				String string = displayScreen.getText();
-				if (displayScreen.getText().indexOf("=") != -1) {          
-					displayScreen.setText("0");
-					displayScreen.requestFocus();             /*把输入焦点放在调用这个方法的控件上*/ 
-					return;
-					}
-				int length = string.length();
-				if (length > 0)
-					string = string.substring(0, length - 1);
-				if (string.length() == 0)
-					displayScreen.setText("0");
-				else
-					displayScreen.setText(string);
+				deleteKeyLogic(displayScreen);
 			}
 		});
 
@@ -709,7 +787,7 @@ public class Calculator extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				// TODO Auto-generated method stub
 				try {
-					interruptKeyLogic(displayScreen,"!");
+					interruptKeyLogic(displayScreen,"ln");
 				} catch (ScriptException e) {
 					// TODO Auto-generated catch block
 					 e.printStackTrace();
