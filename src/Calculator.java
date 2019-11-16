@@ -26,9 +26,9 @@ public class Calculator extends JFrame {
 	}
 	static ScriptEngine jse = new ScriptEngineManager().getEngineByName("JavaScript"); 
     static String trueFormula="";         //计算的真实字符串，最后只计算这串字符串
-    static Stack  strInterrupt=new Stack();
+    static Stack<String>  strInterrupt=new Stack();
     //static String strInterrupt="";        //中断字符串
-    static Stack    intInterrupt=new Stack(); 
+    static Stack<Integer>    intInterrupt=new Stack(); 
    // static int    intInterrupt=0;          //中断变量
    
     /*伽马函数的实现，主要用于求广义的阶乘*/
@@ -79,8 +79,11 @@ public class Calculator extends JFrame {
 	public void numberKeyLogic(JTextField jTextField,String symbol){
 		if(jTextField.getText().indexOf("=") != -1){
 			//String[]  lastOperation = jTextField.getText().split("=");
-			//jTextField.setText(lastOperation[1]+symbol);
-			trueFormula=symbol;
+			if(symbol.equals("0")) {
+				trueFormula="";
+			}else {
+			    trueFormula=symbol;
+			}
 			//strInterrupt="";
 			jTextField.setText(symbol);
 		}
@@ -97,10 +100,18 @@ public class Calculator extends JFrame {
 			//jTextField.requestFocus();  /*把输入焦点放在调用这个方法的控件上*/ 
 		}
 		else {
-			if(strInterrupt.isEmpty()) {
-				trueFormula=trueFormula + symbol;			
+			if(intInterrupt.isEmpty()) {
+				if(jTextField.getText().equals("0")) {
+					trueFormula="";
+				}else {
+				trueFormula=trueFormula + symbol;	
+				}
 			}else {
+				if(strInterrupt.isEmpty()) {
+					strInterrupt.push((String)symbol);
+				}else {
 				strInterrupt.push((String)strInterrupt.pop()+symbol);
+				}
 			}
 			String string = jTextField.getText();
 			jTextField.setText(string + symbol);
@@ -114,7 +125,7 @@ public class Calculator extends JFrame {
 			jTextField.setText(lastOperation[1]+symbol);
 		}
 		else if(jTextField.getText().indexOf("错误") != -1||jTextField.getText().indexOf("Infinity") != -1) {
-            trueFormula="0";
+            trueFormula="";
 			jTextField.setText("0");
 		}
 		else if (jTextField.getText().equals("0")) {                 /*与0对比，确保不会出现00的现象*/
@@ -124,12 +135,25 @@ public class Calculator extends JFrame {
 			jTextField.requestFocus();  /*把输入焦点放在调用这个方法的控件上*/ 
 		}
 		else {
-			if(strInterrupt.isEmpty()) {
+			if(intInterrupt.isEmpty()) {
 				//trueFormula=trueFormula + mSymbols(trueFormula,symbol);
 				trueFormula= mSymbols(trueFormula,symbol);
 			}else {
+				if(intInterrupt.isEmpty()) {
+					if(trueFormula.isEmpty()) {
+					trueFormula="0" + symbol;
+					}else {
+						trueFormula=trueFormula + symbol;
+					}
+				}else {
+					if(strInterrupt.isEmpty()) {
+					   return;
+					}else {
+					strInterrupt.push((String)strInterrupt.pop()+symbol);
+					}
+				}
 				//strInterrupt=strInterrupt+ mSymbols(strInterrupt,symbol);
-				strInterrupt.push(mSymbols((String)strInterrupt.pop(),symbol));
+				//strInterrupt.push(mSymbols((String)strInterrupt.pop(),symbol));
 			}
 			String string = jTextField.getText();
 			jTextField.setText(mSymbols(string,symbol));
@@ -217,6 +241,7 @@ public class Calculator extends JFrame {
 		
 		}		
 	}
+	
 	public void interruptKeyLogic(JTextField jTextField,String symbol) throws ScriptException {
 		String str=jTextField.getText();
 		if(str.indexOf("=") != -1) {
@@ -236,11 +261,16 @@ public class Calculator extends JFrame {
 			  System.out.println(strSymbol);
 			  System.out.println("haha");
 			  if(symbol.equals("(")||symbol.equals("sin")||symbol.equals("cos")||symbol.equals("tan")||symbol.equals("ln")||symbol.equals("e^")||symbol.equals("10^")||symbol.equals("√")) {
-				trueFormula=trueFormula+"*";
-				if(symbol.equals("(")) {
-				str=str+"*"+symbol;
+				if(trueFormula.isEmpty()) {
+					str=symbol+"(";
+					trueFormula="";
 				}else {
-				str=str+"*"+symbol+"(";
+					trueFormula=trueFormula+"*";
+					if(symbol.equals("(")) {
+					str=str+"*"+symbol;
+					}else {
+					str=str+"*"+symbol+"(";
+					}
 				}
 				switch(symbol) {
 				case "(" :
@@ -274,47 +304,54 @@ public class Calculator extends JFrame {
 				jTextField.setText(str);
 			}
 			else if(symbol.equals(")")) {
+				 System.out.println(intInterrupt.peek()+"()");
+				// intInterrupt.pop();
+				 //if(intInterrupt.isEmpty()) {
+					// System.out.println(intInterrupt.isEmpty()+"()");
+				// return;}
 				if(strInterrupt.isEmpty()) {
+					//System.out.println((String)strInterrupt.peek());
 					return;
 				}
-				if(/*str.indexOf("(") != -1*/intInterrupt.isEmpty()) {
+				if(/*str.indexOf("(") != -1*/!intInterrupt.isEmpty()) {
 				  jTextField.setText(str+")");
 				  int switchInterrupt=0;
 				  String caseInterrupt="";
+				  System.out.println((String)strInterrupt.peek()+"aaaaaaaaaaaaa");
 				  switchInterrupt=(int)intInterrupt.pop();
 				  switch(switchInterrupt) {				  
-				  case 1:
+				  case 0:
 				      caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
 					  doubleCalculation=Double.parseDouble(caseInterrupt);
-					  doubleCalculation=Math.asin(doubleCalculation);
+					  //doubleCalculation=Math.asin(doubleCalculation);
 				      caseInterrupt=String.valueOf(doubleCalculation);
 					  trueFormula=trueFormula+caseInterrupt;
 				      break;
-				  case 2:
+				  case 1:
 					  caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
 					  doubleCalculation=Double.parseDouble(caseInterrupt);
 					  doubleCalculation=Math.asin(doubleCalculation);
 					  caseInterrupt=String.valueOf(doubleCalculation);
 					  trueFormula=trueFormula+caseInterrupt;
 				      break;
-				  case 3:
+				  case 2:
 					  caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
 					  doubleCalculation=Double.parseDouble(caseInterrupt);
 					  doubleCalculation=Math.acos(doubleCalculation);
 					  caseInterrupt=String.valueOf(doubleCalculation);
 					  trueFormula=trueFormula+caseInterrupt;
 				      break;
-				  case 4:
+				  case 3:
 					  caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
 					  doubleCalculation=Double.parseDouble(caseInterrupt);
 					  doubleCalculation=Math.atan(doubleCalculation);
 					  caseInterrupt=String.valueOf(doubleCalculation);
 					  trueFormula=trueFormula+caseInterrupt;
 				      break;
-				  case 5:
+				  case 4:
 					  caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
 					  doubleCalculation=Double.parseDouble(caseInterrupt);
-					  if(doubleCalculation<0) {
+					  if(doubleCalculation<=0) {
 						  return;
 					  }else {
 					  doubleCalculation=Math.log(doubleCalculation);
@@ -322,21 +359,21 @@ public class Calculator extends JFrame {
 					  trueFormula=trueFormula+caseInterrupt;
 					  }
 				      break;
-				  case 6:
+				  case 5:
 					  caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
 					  doubleCalculation=Double.parseDouble(caseInterrupt);
 					  doubleCalculation=Math.exp(doubleCalculation);
 					  caseInterrupt=String.valueOf(doubleCalculation);
 					  trueFormula=trueFormula+caseInterrupt;
 				      break;  
-				  case 7:
+				  case 6:
 					  caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
 					  doubleCalculation=Double.parseDouble(caseInterrupt);
 					  doubleCalculation=Math.pow(10,doubleCalculation);
 					  caseInterrupt=String.valueOf(doubleCalculation);
 					  trueFormula=trueFormula+caseInterrupt;
 				      break;  
-				  case 8:
+				  case 7:
 					  caseInterrupt=jse.eval((String)strInterrupt.pop()).toString();
 					  doubleCalculation=Double.parseDouble(caseInterrupt);
 					  if(doubleCalculation<0) {
@@ -777,7 +814,7 @@ public class Calculator extends JFrame {
 				displayScreen.setText("0");
 				strInterrupt.clear();
             	intInterrupt.clear();
-            	trueFormula="0";
+            	trueFormula="";
 			}
 		});
 		
@@ -806,7 +843,14 @@ public class Calculator extends JFrame {
 					displayScreen.requestFocus();             //把输入焦点放在调用这个方法的控件上
 					return;
 				} */
-				squareKeyLogic(displayScreen,"root");
+				try {
+					interruptKeyLogic(displayScreen,"^2");
+				} catch (ScriptException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+		
+				//squareKeyLogic(displayScreen,"root");
 			/*	Double double1 = Double.parseDouble(string);// 将字符串转换为double
 				Double double2 = double1 * double1;
 				String string2 = string.valueOf(double2);// 将double转换为string
@@ -839,19 +883,29 @@ public class Calculator extends JFrame {
 	                    // 获取文本框内容
 	                    String formula = displayScreen.getText();
 	                    // 计算公式
+	                    if(displayScreen.getText().isEmpty()) {
+	                    	
+	                    	numberKeyLogic(displayScreen,"0");
+	                    	return;
+	                    }
 	                    if(displayScreen.getText().indexOf("=") != -1) {
 	                    	return;
 	                    }else {
+	                    	System.out.println("1122141");
+	                    	System.out.println(strInterrupt.isEmpty());
 	                    	while(!intInterrupt.isEmpty()) {
+	                    		System.out.println(strInterrupt.peek()+"1122141");
 	                    		interruptKeyLogic(displayScreen,")");
+	                    		
 	                    		formula=formula+")";
+	                    		System.out.println(formula+"========");
 	                    	}
 	                    	String results = jse.eval(trueFormula).toString();
 	                    	
 	                    	System.out.println(trueFormula);
 	                    	// 如果结果字符串过长，只显示结果
 	                    	if((formula.length()+results.length())>=20) {
-	                    	displayScreen.setText(results);
+	                    	displayScreen.setText("="+results);
 	                    	}
 	                    	else {
 	                    	displayScreen.setText(formula+"="+results);
