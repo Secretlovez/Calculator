@@ -26,10 +26,11 @@ public class Calculator extends JFrame {
 	}
 	static ScriptEngine jse = new ScriptEngineManager().getEngineByName("JavaScript"); 
     static String trueFormula="";         //计算的真实字符串，最后只计算这串字符串
+    //中断字符串的栈
     static Stack<String>  strInterrupt=new Stack();
-    //static String strInterrupt="";        //中断字符串
+    //中断变量栈
     static Stack<Integer>    intInterrupt=new Stack(); 
-   // static int    intInterrupt=0;          //中断变量
+ 
    
     /*伽马函数的实现，主要用于求广义的阶乘*/
     public double gamma(double x) { 
@@ -42,40 +43,41 @@ public class Calculator extends JFrame {
 		                       +  0.00120858003 / (x + 4)   -  0.00000536382 / (x + 5);
 		      return tmp + Math.log(ser * Math.sqrt(2 * Math.PI));
 		 }
+    
     /*防止连续的运算符出现*/
-	public String mSymbols(String str,String Symbol) {		
+	public String mSymbols(String str,String symbol) {		
 		int length = str.length();
 		String strFormula,strSymbol;
 		strFormula="";
 		strSymbol="";
 		if (length == 1) 
-			return str+Symbol;
+			return str+symbol;
 		if (length > 1) {
 			strFormula = str.substring(0, length - 1);
 			strSymbol=str.substring(length - 1, length);
 		}
 		switch(strSymbol) {
 		case "+":	
-			return strFormula+Symbol;
+			return strFormula+symbol;
 			
 		case "-":
-			return strFormula+Symbol;
+			return strFormula+symbol;
 		 
 		case "/":
-			return strFormula+Symbol;
+			return strFormula+symbol;
 		    
 		case "*":
-			return strFormula+Symbol;
+			return strFormula+symbol;
 		   
 		case ".":
-			return strFormula+Symbol;
+			return strFormula+symbol;
 					 
 		default:
-			return str+Symbol;  
+			return str+symbol;  
 		
 		}
 	}
-	
+	/*数字键逻辑*/
 	public void numberKeyLogic(JTextField jTextField,String symbol){
 		if(jTextField.getText().indexOf("=") != -1){
 			//String[]  lastOperation = jTextField.getText().split("=");
@@ -94,7 +96,11 @@ public class Calculator extends JFrame {
 		}
 		else if (jTextField.getText().equals("0")) {                 /*与0对比，确保不会出现00的现象*/
 			//jTextField.setText("");
-			trueFormula=symbol;
+			if(symbol.equals("0")) {
+				trueFormula="";
+			}else {
+			    trueFormula=symbol;
+			}
 			//strInterrupt="";
 			jTextField.setText(symbol);
 			//jTextField.requestFocus();  /*把输入焦点放在调用这个方法的控件上*/ 
@@ -117,7 +123,7 @@ public class Calculator extends JFrame {
 			jTextField.setText(string + symbol);
 		}
 	}
-	
+	/*运算键逻辑*/
 	public void operationKeyLogic(JTextField jTextField,String symbol) {
 		if(jTextField.getText().indexOf("=") != -1){
 			String[]  lastOperation = jTextField.getText().split("=");
@@ -247,21 +253,22 @@ public class Calculator extends JFrame {
 		if(str.indexOf("=") != -1) {
 			String[]  lastOperation = jTextField.getText().split("=");
 			trueFormula=lastOperation[1];
-			System.out.println(trueFormula);
+			//System.out.println(trueFormula);
 			str=lastOperation[1];
 		}
 		Double doubleCalculation;   //用于计算转化的变量
 		int length = str.length();
 		int currentLength=length;
 		String strFormula,strSymbol;
-		strSymbol=str.substring(currentLength - 1, currentLength);
-		System.out.println(strSymbol);
+		strSymbol=str.substring(currentLength - 1, currentLength);  //获得字符串最后一位
+		// System.out.println(strSymbol);
 		currentLength--;
 		  if(strSymbol.equals("0")||strSymbol.equals("1")||strSymbol.equals("2")||strSymbol.equals("3")||strSymbol.equals("4")||strSymbol.equals("5")||strSymbol.equals("6")||strSymbol.equals("7")||strSymbol.equals("8")||strSymbol.equals("9")) {
-			  System.out.println(strSymbol);
-			  System.out.println("haha");
+			  //System.out.println(strSymbol);
+			 // System.out.println("haha");
 			  if(symbol.equals("(")||symbol.equals("sin")||symbol.equals("cos")||symbol.equals("tan")||symbol.equals("ln")||symbol.equals("e^")||symbol.equals("10^")||symbol.equals("√")) {
-				if(trueFormula.isEmpty()) {
+				   //避免0*sin之类的无意义运算
+				  if(trueFormula.isEmpty()) {
 					str=symbol+"(";
 					trueFormula="";
 				}else {
@@ -304,7 +311,7 @@ public class Calculator extends JFrame {
 				jTextField.setText(str);
 			}
 			else if(symbol.equals(")")) {
-				 System.out.println(intInterrupt.peek()+"()");
+				// System.out.println(intInterrupt.peek()+"()");
 				// intInterrupt.pop();
 				 //if(intInterrupt.isEmpty()) {
 					// System.out.println(intInterrupt.isEmpty()+"()");
@@ -315,9 +322,9 @@ public class Calculator extends JFrame {
 				}
 				if(/*str.indexOf("(") != -1*/!intInterrupt.isEmpty()) {
 				  jTextField.setText(str+")");
-				  int switchInterrupt=0;
-				  String caseInterrupt="";
-				  System.out.println((String)strInterrupt.peek()+"aaaaaaaaaaaaa");
+				  int switchInterrupt=0;   //获得运算符
+				  String caseInterrupt="";  //帮助运算的字符串
+				  //System.out.println((String)strInterrupt.peek()+"aaaaaaaaaaaaa");
 				  switchInterrupt=(int)intInterrupt.pop();
 				  switch(switchInterrupt) {				  
 				  case 0:
@@ -402,7 +409,7 @@ public class Calculator extends JFrame {
 				      else     currentLength--;
 			          }
 				strFormula = str.substring(currentLength, length);//此时已经得到了想运算数字字符串即StrFormula
-			    System.out.println(strFormula+"ahaha");
+			    // System.out.println(strFormula+"ahaha");
 			    Double double1 = Double.parseDouble(strFormula);  // 将字符串转换为double	    
 			    switch(symbol) {
 			    case "%":
@@ -446,8 +453,8 @@ public class Calculator extends JFrame {
 				      else     currentLength--;
 			          }
 			    trueFormula=trueFormula.substring(0, currentLength)+(String)strInterrupt.pop();
-			    System.out.println(trueFormula+"end");
-			    System.out.println(str+symbol);
+			   // System.out.println(trueFormula+"end");
+			   // System.out.println(str+symbol);
 			    jTextField.setText(str+symbol);
 			}else {
 				return;
@@ -500,7 +507,7 @@ public class Calculator extends JFrame {
 		String string = jTextField.getText();
 		if (string.indexOf("=") != -1) {          
 			jTextField.setText("0");
-			trueFormula="0";
+			trueFormula="";
 			jTextField.requestFocus();             /*把输入焦点放在调用这个方法的控件上*/ 
 			return;
 			}
@@ -539,7 +546,8 @@ public class Calculator extends JFrame {
 			}
 			string = string.substring(0, length - 1);
 			jTextField.setText(string);
-		    System.out.println(string+"delete");}
+		   // System.out.println(string+"delete");
+			}
 		else {
 			jTextField.setText(string);
 			return;
@@ -548,7 +556,8 @@ public class Calculator extends JFrame {
 			length=trueFormula.length();
 			if (length > 0) {
 				trueFormula = trueFormula.substring(0, length - 1);
-			    System.out.println(trueFormula +"        delete");}
+			    // System.out.println(trueFormula +"        delete");
+				}
 			else
 				return;
 		}else {
@@ -582,6 +591,7 @@ public class Calculator extends JFrame {
 		}
 
 	}
+	
 	/* 构造方法*/
 	public Calculator() {
 		Container container = getContentPane();                           /* 定义一个顶级容器*/
@@ -685,7 +695,7 @@ public class Calculator extends JFrame {
 		setSize(400,500);                                     /*设置窗口大小*/
 		setVisible(true);                                     /*保证窗口刷新*/
 		setTitle("计算器");                                    /*设置标题*/
-    		setIconImage(icon);                                   /*   角标设置*/
+        setIconImage(icon);                                   /*   角标设置*/
 		setLocationRelativeTo(null);                          /* 界面居中*/
 		//setResizable(false);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);              /*关闭按钮能够关闭*/
@@ -701,16 +711,14 @@ public class Calculator extends JFrame {
 				
 				numberKeyLogic(displayScreen,"0");
 			}
-		});
-		
+		});	
 		jButton1.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				numberKeyLogic(displayScreen,"1");
 			}
-		});
-		
+		});	
 		jButton2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
@@ -766,6 +774,8 @@ public class Calculator extends JFrame {
 				numberKeyLogic(displayScreen,"9");
 			}
 		});
+		
+
 		point.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
@@ -844,7 +854,7 @@ public class Calculator extends JFrame {
 					return;
 				} */
 				try {
-					interruptKeyLogic(displayScreen,"^2");
+					interruptKeyLogic(displayScreen,"ln");
 				} catch (ScriptException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -856,8 +866,7 @@ public class Calculator extends JFrame {
 				String string2 = string.valueOf(double2);// 将double转换为string
 				displayScreen.setText(string2);*/
 			}
-		});
-	
+		});	
 		sqrt.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
@@ -875,6 +884,8 @@ public class Calculator extends JFrame {
 				displayScreen.setText(string2);*/
 			}
 		});
+		
+
 		equal.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
@@ -883,26 +894,25 @@ public class Calculator extends JFrame {
 	                    // 获取文本框内容
 	                    String formula = displayScreen.getText();
 	                    // 计算公式
-	                    if(displayScreen.getText().isEmpty()) {
-	                    	
+	                    if(formula.isEmpty()) {                    	
 	                    	numberKeyLogic(displayScreen,"0");
 	                    	return;
 	                    }
 	                    if(displayScreen.getText().indexOf("=") != -1) {
 	                    	return;
 	                    }else {
-	                    	System.out.println("1122141");
-	                    	System.out.println(strInterrupt.isEmpty());
+	                    	//System.out.println("1122141");
+	                    	//System.out.println(strInterrupt.isEmpty());
 	                    	while(!intInterrupt.isEmpty()) {
-	                    		System.out.println(strInterrupt.peek()+"1122141");
+	                    		//System.out.println(strInterrupt.peek()+"1122141");
 	                    		interruptKeyLogic(displayScreen,")");
 	                    		
 	                    		formula=formula+")";
-	                    		System.out.println(formula+"========");
+	                    		//System.out.println(formula+"========");
 	                    	}
-	                    	String results = jse.eval(trueFormula).toString();
 	                    	
-	                    	System.out.println(trueFormula);
+	                    	String results = jse.eval(trueFormula).toString();	                    	
+	                    	//System.out.println(trueFormula);
 	                    	// 如果结果字符串过长，只显示结果
 	                    	if((formula.length()+results.length())>=20) {
 	                    	displayScreen.setText("="+results);
@@ -919,7 +929,8 @@ public class Calculator extends JFrame {
 	               } catch (Exception t) {  
 	            	   displayScreen.setText("错误");
 	            	   strInterrupt.clear();
-                   	intInterrupt.clear();
+                   	   intInterrupt.clear();
+                   	   //trueFormula="";
 	               }          
                   
 			}
